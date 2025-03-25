@@ -58,3 +58,5 @@ history_benchmark = model_benchmark.fit(x=train_data,
                                         epochs=50,batch_size=100,
                                         validation_data=(test_data,test_labels_encoded),
                                         callbacks=callbacks)
+
+print("testing")
