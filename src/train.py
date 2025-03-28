@@ -74,9 +74,5 @@ if __name__ == "__main__":
                                 callbacks=callbacks)
     
     save_metrics_plot(history_10k, "model_10k")
-    
-
-
-
 
 

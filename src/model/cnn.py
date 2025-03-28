@@ -1,40 +1,40 @@
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Conv2D, MaxPool2D, Dense, Dropout, Flatten
+import torch.nn as nn
+import torch.nn.functional as F
 
-def get_new_model(input_shape):
-  '''
-  This function returns a compiled CNN with specifications given above.
-  '''
+class CNNModel(nn.Module):
+    def __init__(self, input_shape, num_classes):
+        super(CNNModel, self).__init__()
+        self.encoder = nn.Sequential(
+            nn.Conv2d(in_channels=input_shape[2], out_channels=16, kernel_size=(3,3), padding='same'),
+            nn.ReLU(),
+            nn.Conv2d(in_channels=16, out_channels=16, kernel_size=(3,3), padding='same'),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=(2,2)),
 
-  input_layer = Input(shape=input_shape, name='input')
-  h = Conv2D(filters=16, kernel_size=(3,3), 
-             activation='relu', padding='same', name='conv2d_1')(input_layer)
-  h = Conv2D(filters=16, kernel_size=(3,3), 
-             activation='relu', padding='same', name='conv2d_2')(h)
+            nn.Conv2d(in_channels=16, out_channels=16, kernel_size=(3,3), padding='same'),
+            nn.ReLU(),
+            nn.Conv2d(in_channels=16, out_channels=16, kernel_size=(3,3), padding='same'),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=(2,2)),
 
-  h = MaxPool2D(pool_size=(2,2), name='pool_1')(h)
+            nn.Conv2d(in_channels=16, out_channels=16, kernel_size=(3,3), padding='same'),
+            nn.ReLU(),
+            nn.Conv2d(in_channels=16, out_channels=16, kernel_size=(3,3), padding='same'),
+            nn.ReLU(), 
+        )
 
-  h = Conv2D(filters=16, kernel_size=(3,3), 
-             activation='relu', padding='same', name='conv2d_3')(h)
-  h = Conv2D(filters=16, kernel_size=(3,3), 
-             activation='relu', padding='same', name='conv2d_4')(h)
+        self.fc_layers = nn.Sequential(
+            nn.Linear(16, 64),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Flatten(start_dim=1),
+            nn.Linear(4096, num_classes),
+            nn.Softmax(dim=1),
+        )
 
-  h = MaxPool2D(pool_size=(2,2), name='pool_2')(h)
-
-  h = Conv2D(filters=16, kernel_size=(3,3), 
-             activation='relu', padding='same', name='conv2d_5')(h)
-  h = Conv2D(filters=16, kernel_size=(3,3), 
-             activation='relu', padding='same', name='conv2d_6')(h)
-    
-  h = Dense(64, activation='relu', name='dense_1')(h)
-  h = Dropout(0.5, name='dropout_1')(h)
-  h = Flatten(name='flatten_1')(h)
-  output_layer = Dense(10, activation='softmax', name='dense_2')(h)
-
-  model = Model(inputs=input_layer, outputs=output_layer, name='model_CNN')
-
-  model.compile(optimizer='adam',
-                loss='categorical_crossentropy',
-                metrics=['accuracy'])
-  
-  return model
+    def forward(self, x):
+        x = self.encoder(x)
+        # (B, C, H, W) -> (B, H, W, C)
+        x = x.permute(0, 2, 3, 1)
+        x = self.fc_layers(x)
+        return x
