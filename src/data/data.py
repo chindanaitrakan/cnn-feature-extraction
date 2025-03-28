@@ -7,13 +7,13 @@ class Data():
     def __init__(self):
 
         (self.train_data, self.train_labels), (self.test_data, self.test_labels) = cifar10.load_data()
+        self._preprocess()
         # seperate one data for feature analysis
-        eval_data = self.train_data[-1,...]
+        eval_data = self.train_data[0,...]
         self.eval_data = eval_data[np.newaxis,...]
         
-        self.train_data = self.train_data[:-1,...]
-        self.train_labels = self.train_labels[:-1,...]
-        self._preprocess()
+        self.train_data = self.train_data[1:,...]
+        self.train_labels = self.train_labels[1:,...]
     
     def _preprocess(self):
         """
@@ -40,5 +40,4 @@ class Data():
     
     def all(self):
         return (self.train_data, self.train_labels_encoded), (self.test_data, self.test_labels_encoded)
-
 
