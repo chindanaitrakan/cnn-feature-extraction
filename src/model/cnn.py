@@ -5,7 +5,7 @@ class CNNModel(nn.Module):
     def __init__(self, input_shape, num_classes):
         super(CNNModel, self).__init__()
         self.encoder = nn.Sequential(
-            nn.Conv2d(in_channels=input_shape[2], out_channels=16, kernel_size=(3,3), padding='same'),
+            nn.Conv2d(in_channels=input_shape[0], out_channels=16, kernel_size=(3,3), padding='same'),
             nn.ReLU(),
             nn.Conv2d(in_channels=16, out_channels=16, kernel_size=(3,3), padding='same'),
             nn.ReLU(),
@@ -28,8 +28,7 @@ class CNNModel(nn.Module):
             nn.ReLU(),
             nn.Dropout(0.5),
             nn.Flatten(start_dim=1),
-            nn.Linear(4096, num_classes),
-            nn.Softmax(dim=1),
+            nn.Linear(input_shape[1]//4 * input_shape[2]//4 * 64, num_classes),
         )
 
     def forward(self, x):
