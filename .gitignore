@@ -1,3 +1,6 @@
 src/data/raw/*
 
+__pycache__/
+*.py[co]
+
 src/runs/*
