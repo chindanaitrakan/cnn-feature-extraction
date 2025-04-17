@@ -14,9 +14,9 @@ This project will investigate how each CNN layer extracts features from the give
 
 ## TODO List
 
-- [ ] **Train the CNN model**
-- [ ] **Perform feature extraction**
-- [ ] **Analyse mutual information**
+- [x] **Train the CNN model**
+- [x] **Perform feature extraction**
+- [x] **Analyse mutual information**
 
 
 
