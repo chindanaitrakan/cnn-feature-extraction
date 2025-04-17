@@ -4,7 +4,6 @@ import os
 from torchvision import transforms, datasets
 import torch
 import torch.nn.functional as F
-from PIL import Image
 from torch.utils.data import Dataset
 
 class GrayscaleTransform:

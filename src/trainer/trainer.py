@@ -9,7 +9,9 @@ import torchvision
 from torchvision import datasets, transforms
 from sklearn.decomposition import PCA
 from torch.utils.tensorboard import SummaryWriter
+from .info import average_mutual_information
 import numpy as np
+import matplotlib.pyplot as plt
 
 from .utils import get_confusion_matrix, plot_confusion_matrix
 
@@ -105,6 +107,15 @@ class Trainer:
         print(f"Training on device {device}")
         self.model.to(device)
 
+        # define hook to extract last CNN activation
+        activations = {}
+        def getActivation(name):
+            def hook(model, input, output):
+                activations[name] = output.detach()
+            return hook
+        h = self.model.encoder[13].register_forward_hook(getActivation('encoder13_conv2d'))
+        mi_list = []
+
         for epoch in range(self.eps):
             self.model.train()
             running_loss = 0.0
@@ -146,6 +157,8 @@ class Trainer:
             total = 0
             running_loss =0
             with torch.no_grad():
+                mi = 0
+                count = 0
                 for images, labels in self.test_loader:
                     images, labels = images.to(device), labels.to(device)
                     outputs = self.model(images)
@@ -156,6 +169,9 @@ class Trainer:
                     _, predicted = torch.max(outputs.data, 1)
                     total += labels.size(0)
                     correct += (predicted == labels).sum().item()
+                    mi += average_mutual_information(images, activations['encoder13_conv2d'])
+                    count += 1
+                mi_list.append(mi/count)
 
             test_loss = running_loss / len(self.test_loader)
             test_accuracy = correct / total
@@ -172,8 +188,25 @@ class Trainer:
             if early_stopping.early_stop:
                 print("Early stopping")
                 break
+        
+        # Generate a list of epoch numbers starting from 1
+        epochs = list(range(1, len(mi_list) + 1))
+
+        # Create the plot
+        plt.figure(figsize=(8, 5))
+        plt.plot(epochs, mi_list, marker='o', linestyle='-', color='blue', label='Mutual Information')
+        plt.title('Mutual Information Over Epochs')
+        plt.xlabel('Epoch')
+        plt.ylabel('Mutual Information')
+        plt.grid(True)
+        plt.legend()
+
+        # Save the plot as a PNG image
+        plt.savefig('../outputs/mutual_information_plot.png', dpi=300, bbox_inches='tight')
+        plt.close()
 
         self.writer.close()
+        h.remove()
 
 
 
